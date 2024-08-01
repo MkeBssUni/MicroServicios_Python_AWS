@@ -1,0 +1,133 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  lambdas_carros
+  Sample SAM Template for lambdas_carros
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 25
+    MemorySize: 128
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+  ApiCarros:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: Prod
+      Name: ApiCarros
+
+  GetCarsFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: get_cars/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        GetCars:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiCarros
+            Path: /get_cars
+            Method: get
+
+  DeleteCarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: delete_car/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        DeleteCar:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiCarros
+            Path: /delete/{id}
+            Method: delete
+
+  SaveCarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: save_car/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        SaveCar:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiCarros
+            Path: /save_car
+            Method: post
+
+  UpdateCarFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: update_car/
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Architectures:
+        - x86_64
+      Events:
+        UpdateCar:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiCarros
+            Path: /update_car
+            Method: put
+
+Outputs:
+  DeleteCarApi:
+    Description: "API Gateway endpoint URL for Prod stage for DeleteCar function"
+    Value: !Sub "https://${ApiCarros}.execute-api.${AWS::Region}.amazonaws.com/Prod/delete/{id}"
+  DeleteCarFunction:
+    Description: "Delete Car Lambda Function ARN"
+    Value: !GetAtt DeleteCarFunction.Arn
+  GetCarsApi:
+    Description: "API Gateway endpoint URL for Prod stage for GetCars function"
+    Value: !Sub "https://${ApiCarros}.execute-api.${AWS::Region}.amazonaws.com/Prod/get_cars"
+  GetCarsFunction:
+    Description: "Get Cars Lambda Function ARN"
+    Value: !GetAtt GetCarsFunction.Arn
+  SaveCarApi:
+    Description: "API Gateway endpoint URL for Prod stage for SaveCar function"
+    Value: !Sub "https://${ApiCarros}.execute-api.${AWS::Region}.amazonaws.com/Prod/save_car"
+  SaveCarFunction:
+    Description: "Save Car Lambda Function ARN"
+    Value: !GetAtt SaveCarFunction.Arn
+  UpdateCarApi:
+    Description: "API Gateway endpoint URL for Prod stage for UpdateCar function"
+    Value: !Sub "https://${ApiCarros}.execute-api.${AWS::Region}.amazonaws.com/Prod/update_car"
+  UpdateCarFunction:
+    Description: "Update Car Lambda Function ARN"
+    Value: !GetAtt UpdateCarFunction.Arn
