@@ -14,10 +14,17 @@ def lambda_handler(event, __):
         "Access-Control-Allow-Headers": "Content-Type, X-Amz-Date, Authorization, X-Api-Key, X-Amz-Security-Token"
     }
 
+    if event['httpMethod'] == 'OPTIONS':
+        return {
+            "statusCode": 200,
+            "headers": headers
+        }
+
     try:
         if 'pathParameters' not in event or 'id' not in event['pathParameters']:
             return {
                 "statusCode": 400,
+                "headers": headers,
                 "body": json.dumps({
                     "message": "MISSING_PRODUCT_ID"
                 }),
@@ -34,7 +41,7 @@ def lambda_handler(event, __):
                 }),
             }
 
-        if car_exists(id) == False:
+        if not car_exists(id):
             return {
                 "statusCode": 404,
                 "headers": headers,
@@ -43,7 +50,7 @@ def lambda_handler(event, __):
                 }),
             }
 
-        if(delete_car(id)):
+        if delete_car(id):
             return {
                 "statusCode": 200,
                 "headers": headers,
