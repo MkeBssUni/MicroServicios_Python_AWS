@@ -92,7 +92,7 @@ def save_car(brand, model, year, color, headers):
         connection.commit()
 
         return {
-            "statusCode": 200,
+            "statusCode": 201,
             "headers": headers,
             "body": json.dumps({
                 "message": "CAR_SAVED",
